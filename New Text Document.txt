@@ -1,0 +1,200 @@
+create table a(
+  id number(10) primary key,
+  salary integer
+);
+
+create table output(
+  int_out integer
+);
+
+create sequence seq
+  start with 1
+  increment by 1;
+
+insert into a values (seq.nextval,4000);
+insert into a values (seq.nextval,3000);
+insert into a values (seq.nextval,6000);
+insert into a values (seq.nextval,2500);
+insert into a values (seq.nextval,7800);
+
+----------------------------------------------
+
+declare
+  pi CONSTANT double precision := 3.1415; 
+begin
+  insert into output (double_out) values (pi);
+end;
+/
+select * from output
+/
+
+-------------------------------------------------------
+
+Even or Odd:
+
+declare
+  num integer := 245; 
+  rev integer;
+begin
+  if MOD(num,2) = 0 then
+  insert into output (msg) values ('even');
+  else
+  insert into output (msg) values ('odd');
+  end if;
+end;
+/
+select * from output
+/
+
+-------------------------------------------------------
+
+Reverse a number:
+
+declare
+  num integer := 245; 
+  rev integer := 0;
+  digit integer;
+begin
+  LOOP
+    if num = 0 then
+      exit;
+    end if;
+    digit := mod(num,10);
+    rev := (rev * 10) + digit;
+    num := floor(num / 10);
+  END LOOP;
+  insert into output (int_out) values (rev);
+end;
+/
+select * from output
+/
+
+-------------------------------------------------------
+
+Array:
+
+Create or replace type numarr as varray(3) of integer;
+/
+
+declare
+  nums numarr;
+begin
+  nums := numarr(10,12,14);
+  insert into output values (nums(3));
+end;
+/
+
+select * from output
+/
+
+-------------------------------------------------------
+
+Function for cubing:
+
+declare
+  y integer := 3;
+  z integer := 0;
+  function cube (x in integer) return integer is
+  total integer;
+  begin
+    total := x * x * x;
+    return total;
+  end;
+begin
+  z := cube(y);
+  insert into output values (z);
+end;
+/
+select * from output
+/
+
+-------------------------------------------------------
+
+recursive factorial:
+
+declare
+  result integer;
+  function fact (x in integer) return integer is
+  total integer;
+  begin
+    if x = 2 then
+      return 2;
+    else
+      total := x * fact(x - 1);
+    end if;
+    return total;
+  end;
+begin
+  result := fact(6);
+  insert into output values (result);
+end;
+/
+select * from output
+/
+
+-------------------------------------------------------
+
+Cursor example: Fetch even rows
+
+declare
+  num integer;
+  cursor cur is
+  SELECT * from a
+  where MOD(id,2) = 0;
+begin
+  open cur;
+  LOOP
+    fetch cur into num;
+      exit when cur%notfound;
+      insert into output values (num);
+  end LOOP;
+  close cur;
+end;
+/
+
+select * from output
+/
+
+-------------------------------------------------------
+
+CREATE OR REPLACE PACKAGE pack as
+  procedure fact (X in out INTEGER);
+END pack;
+/
+
+CREATE OR REPLACE PACKAGE BODY pack as
+  procedure fact (X in out INTEGER) is
+  res integer;
+  i integer;
+  begin
+    res := 1;
+    for i in 1..X LOOP
+      res := res * i;
+    end LOOP;
+    X := res;
+  end fact;
+end pack;
+/
+
+declare
+  y integer;
+begin
+  y := 4;
+  pack.fact(y);
+  insert into output values (y);
+end;
+/
+
+select * from output
+/
+
+------------------------------------------------------
+0 1 1 2 3 5 8 13
+
+fib(0) = 0;
+fib(1) = 1;
+fib(2) = fib(1) + fib(0) = 1
+fib(3) = fib(2) + fib(1) = 2
+fib(4) = fib(3) + fib(2) = 3
+fib(5) = fib(4) + fib(3) = 5
+fib(6) = fib(5) + fib(4) = 8
